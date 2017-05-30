@@ -1,6 +1,14 @@
 require 'yaml'
 
 module Cfer::Provisioning
+  begin
+    include Cfer::Core::Functions
+  rescue NameError => _
+    # we need to fall back to the old Cfer setup
+    include Cfer::Core
+    include Cfer::Cfn
+  end
+
   def cloud_init
     unless self.key?(:CloudInit)
       self[:CloudInit] = {
@@ -59,7 +67,7 @@ module Cfer::Provisioning
   def cloud_init_finalize!
     cloud_init_outputs[:all] ||= "| tee -a /var/log/cloud-init-output.log"
 
-    user_data Cfer::Core::Fn.base64( cloud_init_to_user_data(self[:CloudInit]) )
+    user_data Fn.base64( cloud_init_to_user_data(self[:CloudInit]) )
     self.delete :CloudInit
   end
 
